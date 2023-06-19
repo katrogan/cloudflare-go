@@ -193,6 +193,9 @@ func (api *API) Tunnels(ctx context.Context, rc *ResourceContainer, params Tunne
 
 	uri := buildURI(fmt.Sprintf("/accounts/%s/cfd_tunnel", rc.Identifier), params)
 
+	if len(opt.params) > 0 {
+		uri = uri + "?" + opt.params.Encode()
+	}
 	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
 		return []Tunnel{}, err
