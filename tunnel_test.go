@@ -40,7 +40,47 @@ func TestTunnels(t *testing.T) {
 		}},
 	}}
 
-	actual, err := client.Tunnels(context.Background(), AccountIdentifier(testAccountID), TunnelListParams{UUID: "f174e90a-fafe-4643-bbbc-4a0ed4fc8415"})
+	actual, err := client.Tunnels(context.Background(), AccountIdentifier(testAccountID),
+		TunnelListParams{UUID: "f174e90a-fafe-4643-bbbc-4a0ed4fc8415"})
+
+	if assert.NoError(t, err) {
+		assert.Equal(t, want, actual)
+	}
+}
+
+func TestTunnelOrdering(t *testing.T) {
+	setup()
+	defer teardown()
+
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method, "Expected method 'GET', got %s", r.Method)
+		w.Header().Set("content-type", "application/json")
+		fmt.Fprint(w, loadFixture("tunnel", "ordered_full"))
+	}
+
+	mux.HandleFunc("/accounts/"+testAccountID+"/cfd_tunnel", handler)
+
+	createdAt, _ := time.Parse(time.RFC3339, "2009-11-10T23:00:00Z")
+	want := []Tunnel{
+		{
+			ID:        "f174e90a-fafe-4643-bbbc-4a0ed4fc8415",
+			Name:      "tunnel-1",
+			CreatedAt: &createdAt,
+		},
+		{
+			ID:        "f0bacd1c-566a-4203-a157-0b69222b2b5b",
+			Name:      "tunnel-2",
+			CreatedAt: &createdAt,
+		}}
+
+	paginationOption := WithPagination(PaginationOptions{
+		Page:      1,
+		PerPage:   100,
+		Order:     "name",
+		Direction: "asc",
+	})
+	actual, err := client.Tunnels(context.Background(), AccountIdentifier(testAccountID),
+		TunnelListParams{}, paginationOption)
 
 	if assert.NoError(t, err) {
 		assert.Equal(t, want, actual)

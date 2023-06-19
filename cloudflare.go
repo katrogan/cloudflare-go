@@ -502,8 +502,10 @@ func (api *API) Raw(ctx context.Context, method, endpoint string, data interface
 // PaginationOptions can be passed to a list request to configure paging
 // These values will be defaulted if omitted, and PerPage has min/max limits set by resource.
 type PaginationOptions struct {
-	Page    int `json:"page,omitempty" url:"page,omitempty"`
-	PerPage int `json:"per_page,omitempty" url:"per_page,omitempty"`
+	Page      int    `json:"page,omitempty" url:"page,omitempty"`
+	PerPage   int    `json:"per_page,omitempty" url:"per_page,omitempty"`
+	Order     string `json:"order,omitempty" url:"order,omitempty"`
+	Direction string `json:"direction,omitempty" url:"direction,omitempty"`
 }
 
 // RetryPolicy specifies number of retries and min/max retry delays
@@ -553,6 +555,14 @@ func WithPagination(opts PaginationOptions) ReqOption {
 
 		if opts.PerPage > 0 {
 			opt.params.Set("per_page", strconv.Itoa(opts.PerPage))
+		}
+
+		if len(opts.Order) > 0 {
+			opt.params.Set("order", opts.Order)
+		}
+
+		if len(opts.Direction) > 0 {
+			opt.params.Set("direction", opts.Direction)
 		}
 	}
 }
