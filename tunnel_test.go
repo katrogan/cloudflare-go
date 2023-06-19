@@ -79,8 +79,11 @@ func TestTunnelOrdering(t *testing.T) {
 		Order:     "name",
 		Direction: "asc",
 	})
+	valTrue := true
 	actual, err := client.Tunnels(context.Background(), AccountIdentifier(testAccountID),
-		TunnelListParams{}, paginationOption)
+		TunnelListParams{
+			IsDeleted: &valTrue,
+		}, paginationOption)
 
 	if assert.NoError(t, err) {
 		assert.Equal(t, want, actual)

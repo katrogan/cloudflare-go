@@ -191,7 +191,7 @@ func (api *API) Tunnels(ctx context.Context, rc *ResourceContainer, params Tunne
 		of(&opt)
 	}
 
-	uri := buildURI(fmt.Sprintf("/accounts/%s/cfd_tunnel", rc.Identifier), params)
+	uri := buildURI(fmt.Sprintf("/accounts/%s/cfd_tunnel", rc.Identifier), opt)
 
 	if len(opt.params) > 0 {
 		uri = uri + "?" + opt.params.Encode()
