@@ -54,9 +54,17 @@ func TestTeamsAccountConfiguration(t *testing.T) {
 			"result": {
 				"settings": {
 					"antivirus": {
-						"enabled_download_phase": true
-					},
+					"enabled_download_phase": true,
+						"notification_settings": {
+					  		"enabled":true,
+					   		"msg":"msg",
+					   		"support_url":"https://hi.com"
+						}
+				 	},
 					"tls_decrypt": {
+						"enabled": true
+					},
+					"protocol_detection": {
 						"enabled": true
 					},
 					"fips": {
@@ -75,6 +83,16 @@ func TestTeamsAccountConfiguration(t *testing.T) {
 						"logo_path": "https://logos.com/a.png",
 						"background_color": "#ff0000",
 						"suppress_footer": true
+					},
+					"browser_isolation": {
+						"url_browser_isolation_enabled": true,
+						"non_identity_enabled": true
+					},
+					"body_scanning": {
+						"inspection_mode": "deep"
+					},
+					"extended_email_matching": {
+						"enabled": true
 					}
 				}
 			}
@@ -88,10 +106,19 @@ func TestTeamsAccountConfiguration(t *testing.T) {
 
 	if assert.NoError(t, err) {
 		assert.Equal(t, actual.Settings, TeamsAccountSettings{
-			Antivirus:   &TeamsAntivirus{EnabledDownloadPhase: true},
-			ActivityLog: &TeamsActivityLog{Enabled: true},
-			TLSDecrypt:  &TeamsTLSDecrypt{Enabled: true},
-			FIPS:        &TeamsFIPS{TLS: true},
+			Antivirus: &TeamsAntivirus{
+				EnabledDownloadPhase: true,
+				NotificationSettings: &TeamsNotificationSettings{
+					Enabled:    &trueValue,
+					Message:    "msg",
+					SupportURL: "https://hi.com",
+				},
+			},
+			ActivityLog:       &TeamsActivityLog{Enabled: true},
+			TLSDecrypt:        &TeamsTLSDecrypt{Enabled: true},
+			ProtocolDetection: &TeamsProtocolDetection{Enabled: true},
+			FIPS:              &TeamsFIPS{TLS: true},
+			BodyScanning:      &TeamsBodyScanning{InspectionMode: "deep"},
 
 			BlockPage: &TeamsBlockPage{
 				Enabled:         BoolPtr(true),
@@ -103,6 +130,13 @@ func TestTeamsAccountConfiguration(t *testing.T) {
 				MailtoAddress:   "admin@example.com",
 				MailtoSubject:   "Blocked User Inquiry",
 				SuppressFooter:  BoolPtr(true),
+			},
+			BrowserIsolation: &BrowserIsolation{
+				UrlBrowserIsolationEnabled: BoolPtr(true),
+				NonIdentityEnabled:         BoolPtr(true),
+			},
+			ExtendedEmailMatching: &TeamsExtendedEmailMatching{
+				Enabled: BoolPtr(true),
 			},
 		})
 	}
@@ -129,6 +163,12 @@ func TestTeamsAccountUpdateConfiguration(t *testing.T) {
 					},
 					"activity_log": {
 						"enabled": true
+					},
+					"protocol_detection": {
+						"enabled": true
+					},
+					"extended_email_matching": {
+						"enabled": true
 					}
 				}
 			}
@@ -137,9 +177,13 @@ func TestTeamsAccountUpdateConfiguration(t *testing.T) {
 	}
 
 	settings := TeamsAccountSettings{
-		Antivirus:   &TeamsAntivirus{EnabledDownloadPhase: false},
-		ActivityLog: &TeamsActivityLog{Enabled: true},
-		TLSDecrypt:  &TeamsTLSDecrypt{Enabled: true},
+		Antivirus:         &TeamsAntivirus{EnabledDownloadPhase: false},
+		ActivityLog:       &TeamsActivityLog{Enabled: true},
+		TLSDecrypt:        &TeamsTLSDecrypt{Enabled: true},
+		ProtocolDetection: &TeamsProtocolDetection{Enabled: true},
+		ExtendedEmailMatching: &TeamsExtendedEmailMatching{
+			Enabled: BoolPtr(true),
+		},
 	}
 
 	mux.HandleFunc("/accounts/"+testAccountID+"/gateway/configuration", handler)
@@ -239,7 +283,7 @@ func TestTeamsAccountGetDeviceConfiguration(t *testing.T) {
 			"success": true,
 			"errors": [],
 			"messages": [],
-			"result": {"gateway_proxy_enabled": true,"gateway_udp_proxy_enabled":false}
+			"result": {"gateway_proxy_enabled": true,"gateway_udp_proxy_enabled":false, "root_certificate_installation_enabled":true}
 		}`)
 	}
 
@@ -249,8 +293,9 @@ func TestTeamsAccountGetDeviceConfiguration(t *testing.T) {
 
 	if assert.NoError(t, err) {
 		assert.Equal(t, actual, TeamsDeviceSettings{
-			GatewayProxyEnabled:    true,
-			GatewayProxyUDPEnabled: false,
+			GatewayProxyEnabled:                true,
+			GatewayProxyUDPEnabled:             false,
+			RootCertificateInstallationEnabled: true,
 		})
 	}
 }
@@ -266,21 +311,23 @@ func TestTeamsAccountUpdateDeviceConfiguration(t *testing.T) {
 			"success": true,
 			"errors": [],
 			"messages": [],
-			"result": {"gateway_proxy_enabled": true,"gateway_udp_proxy_enabled":true}
+			"result": {"gateway_proxy_enabled": true,"gateway_udp_proxy_enabled":true, "root_certificate_installation_enabled":true}
 		}`)
 	}
 
 	mux.HandleFunc("/accounts/"+testAccountID+"/devices/settings", handler)
 
 	actual, err := client.TeamsAccountDeviceUpdateConfiguration(context.Background(), testAccountID, TeamsDeviceSettings{
-		GatewayProxyUDPEnabled: true,
-		GatewayProxyEnabled:    true,
+		GatewayProxyUDPEnabled:             true,
+		GatewayProxyEnabled:                true,
+		RootCertificateInstallationEnabled: true,
 	})
 
 	if assert.NoError(t, err) {
 		assert.Equal(t, actual, TeamsDeviceSettings{
-			GatewayProxyEnabled:    true,
-			GatewayProxyUDPEnabled: true,
+			GatewayProxyEnabled:                true,
+			GatewayProxyUDPEnabled:             true,
+			RootCertificateInstallationEnabled: true,
 		})
 	}
 }
